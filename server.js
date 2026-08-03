@@ -70,6 +70,51 @@ app.get('/auth/status', (req, res) => {
   res.json({ authenticated: true, expires_in: storedTokens.expires_in });
 });
 
+// Step 3: Publish a video using the stored access token
+// This uses TikTok's "PULL_FROM_URL" method - TikTok fetches the video
+// from a public URL you provide (simplest method, no chunked upload needed).
+app.post('/post', async (req, res) => {
+  if (!storedTokens) {
+    return res.status(401).json({ error: 'Not authenticated. Visit /auth/login first.' });
+  }
+
+  const { videoUrl, title } = req.body;
+  if (!videoUrl) {
+    return res.status(400).json({ error: 'videoUrl is required in request body.' });
+  }
+
+  try {
+    // Init the post
+    const initResponse = await axios.post(
+      'https://open.tiktokapis.com/v2/post/publish/video/init/',
+      {
+        post_info: {
+          title: title || 'Posted via API',
+          privacy_level: 'SELF_ONLY', // change to PUBLIC_TO_EVERYONE once app is approved for production
+        },
+        source_info: {
+          source: 'PULL_FROM_URL',
+          video_url: videoUrl,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${storedTokens.access_token}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    res.json({
+      message: 'Video publish initiated.',
+      data: initResponse.data,
+    });
+  } catch (err) {
+    console.error(err.response?.data || err.message);
+    res.status(500).json({ error: err.response?.data || err.message });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
