@@ -19,12 +19,20 @@ app.use(express.json());
 // files. TikTok's PULL_FROM_URL fetches the video over HTTPS from here, so
 // this has to be publicly reachable with no redirect and no auth.
 app.use('/video', express.static(path.join(__dirname, 'video'), {
-  setHeaders: (res) => res.setHeader('Content-Type', 'video/mp4'),
+  // Only force the video type on actual videos — a verification .txt served
+  // as video/mp4 would fail TikTok's ownership check.
+  setHeaders: (res, filePath) => {
+    if (filePath.endsWith('.mp4')) res.setHeader('Content-Type', 'video/mp4');
+  },
 }));
 
 // TikTok URL-prefix ownership verification. Drop the .txt file TikTok gives
-// you into ./public and it is served at the root, which is where TikTok
-// looks for it. Required before PULL_FROM_URL will accept any URL on this host.
+// you into ./public and it is reachable at BOTH the site root and under
+// /video/, so it satisfies the check whichever prefix you register:
+//   https://<host>/          -> public/<file>.txt
+//   https://<host>/video/    -> public/<file>.txt
+// Required before PULL_FROM_URL will accept any URL on this host.
+app.use('/video', express.static(path.join(__dirname, 'public')));
 app.use('/', express.static(path.join(__dirname, 'public')));
 
 // ---------------------------------------------------------------------------
