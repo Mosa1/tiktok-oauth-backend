@@ -1,4 +1,4 @@
-TIKTOK_CLIENT_KEY=your_client_key_here
-TIKTOK_CLIENT_SECRET=your_client_secret_here
-TIKTOK_REDIRECT_URI=https://your-app-name.onrender.com/auth/callback
+TIKTOK_CLIENT_KEY=awtof2i0r4i2e3t5
+TIKTOK_CLIENT_SECRET=B5EsMRALNMOAtQAM3tD7XFoUxXuTQq8Q
+TIKTOK_REDIRECT_URI=https://tiktok-oauth-backend-21r6.onrender.com/
 PORT=3000
